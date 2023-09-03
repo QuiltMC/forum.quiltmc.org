@@ -4,6 +4,8 @@ templates:
 
 env:
     LANG: 'en_US.UTF-8'
+    DISCOURSE_DB_HOST: 'localhost' # For building only, overridden in prod
+    DISCOURSE_DB_PORT: 5432
 
 expose:
   - "80:80"
