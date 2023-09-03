@@ -1,0 +1,72 @@
+name: Build and release image
+
+on:
+  push:
+    branches:
+      - main
+concurrency: build-${{ github.sha }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_PASSWORD: discourse
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: discourse
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create SHA tag
+        id: sha_tag
+        run: |
+          tag=$(cut -c 1-7 <<< $GITHUB_SHA)
+          echo "::set-output name=tag::$tag"
+
+      - name: Build image
+        run: |
+          git clone https://github.com/discourse/discourse_docker.git && cd discourse_docker
+          mkdir -p containers
+
+          cp ../discourse.yml containers/quiltmc.yml
+
+          ./launcher bootstrap quiltmc --docker-args "--network host"
+
+      - name: Retag image
+        run: |
+          docker tag local_discourse/quiltmc ghcr.io/quiltmc/forum:latest
+          docker tag local_discourse/quiltmc ghcr.io/quiltmc/forum:${{ steps.sha_tag.outputs.tag }}
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image to the registry
+        run: |
+          docker push ghcr.io/quiltmc/forum:latest
+          docker push ghcr.io/quiltmc/forum:${{ steps.sha_tag.outputs.tag }}
