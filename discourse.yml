@@ -35,6 +35,7 @@ hooks:
               - git clone https://github.com/paviliondev/discourse-legal-tools.git
               - git clone https://github.com/paviliondev/discourse-custom-wizard.git
               - git clone https://github.com/merefield/discourse-topic-previews.git -b "theme_sidecar"
+              - git clone https://github.com/paviliondev/discourse-legal-tools.git
 
 run:
     - exec: echo "Beginning of custom commands"
