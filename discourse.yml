@@ -15,7 +15,7 @@ expose:
   - "80:80"
 
 params:
-  version: 0876f262e932da2478ed1d2ec275bd2153001213 # 3.1.0
+  version: d41529c811ec8eecdcbef92c0a7a8c873c2e0b34 # 3.2.1
 
 hooks:
     after_code:
